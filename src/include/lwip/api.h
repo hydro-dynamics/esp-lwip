@@ -360,7 +360,13 @@ err_t   netconn_join_leave_group_netif(struct netconn *conn, const ip_addr_t *mu
                              u8_t if_idx, enum netconn_igmp join_or_leave);
 #endif /* LWIP_IGMP || (LWIP_IPV6 && LWIP_IPV6_MLD) */
 #if LWIP_DNS
-#if LWIP_IPV4 && LWIP_IPV6
+
+#ifdef CELL_SUPPORT
+extern err_t cell_gethostbyname(const char *name, ip_addr_t *addr, u8_t dns_addrtype);
+err_t   lwip_netconn_gethostbyname(const char *name, ip_addr_t *addr, u8_t dns_addrtype);
+#define netconn_gethostbyname(name, addr)                        cell_gethostbyname(name, addr, NETCONN_DNS_DEFAULT)
+#define netconn_gethostbyname_addrtype(name, addr, dns_addrtype) cell_gethostbyname(name, addr, dns_addrtype)
+#elif LWIP_IPV4 && LWIP_IPV6
 err_t   netconn_gethostbyname_addrtype(const char *name, ip_addr_t *addr, u8_t dns_addrtype);
 #define netconn_gethostbyname(name, addr) netconn_gethostbyname_addrtype(name, addr, NETCONN_DNS_DEFAULT)
 #else /* LWIP_IPV4 && LWIP_IPV6 */

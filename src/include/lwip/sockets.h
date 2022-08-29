@@ -757,8 +757,49 @@ static inline int inet_pton(int af, const char *src, void *dst)
 # define inet_pton(a,b,c)   lwip_inet_pton(a,b,c)   
 #endif /* LWIP_COMPAT_SOCKET_INET */
 
+#else
+/* By default fall back to original inet_... macros */
+# define inet_ntop(a,b,c,d) lwip_inet_ntop(a,b,c,d) 
+# define inet_pton(a,b,c)   lwip_inet_pton(a,b,c)   
 #endif /* ESP_SOCKET */
 #endif /* LWIP_COMPAT_SOCKETS */
+
+
+#ifdef CELL_SUPPORT
+
+/* remap TCP interface */
+extern int cell_socket(int domain, int type, int protocol);
+extern int cell_getsockopt(int socket, int level, int optname, void *optval, socklen_t *optlen);
+extern int cell_setsockopt(int socket, int level, int optname, const void *optval, socklen_t optlen);
+extern int cell_connect(int socket, const struct sockaddr *name, socklen_t namelen);
+extern ssize_t cell_send(int socket, const void *dataptr, size_t size, int flags);
+extern ssize_t cell_recv(int socket, void *mem, size_t len, int flags);
+extern int cell_shutdown(int socket, int how);
+extern int cell_close(int socket);
+extern int cell_select(int maxfdp1, fd_set *readset, fd_set *writeset, fd_set *exceptset,
+                struct timeval *timeout);
+#undef  socket
+#define socket(domain,type,protocol)              cell_socket(domain,type,protocol)
+#undef  setsockopt
+#define setsockopt(s,level,optname,opval,optlen)  cell_setsockopt(s,level,optname,opval,optlen)
+#undef  getsockopt
+#define getsockopt(s,level,optname,opval,optlen)  cell_getsockopt(s,level,optname,opval,optlen)
+#undef  connect
+#define connect(s,name,namelen)                   cell_connect(s,name,namelen)
+#undef  recv
+#define recv(s,mem,len,flags)                     cell_recv(s,mem,len,flags)
+#undef  send
+#define send(s,dataptr,size,flags)                cell_send(s,dataptr,size,flags)
+#undef  shutdown
+#define shutdown(s,how)                           cell_shutdown(s,how)
+#undef  closesocket
+#define closesocket(s)                            cell_close(s)
+#undef  select
+#define select(maxfdp1,readset,writeset,exceptset,timeout) cell_select(maxfdp1,readset,writeset,exceptset,timeout)
+
+#endif /* CELL_SUPPORT */
+
+
 
 #ifdef __cplusplus
 }
